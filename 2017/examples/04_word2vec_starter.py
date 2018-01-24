@@ -1,4 +1,4 @@
-""" The mo frills implementation of word2vec skip-gram model using NCE loss. 
+""" The mo frills implementation of word2vec skip-gram model using NCE loss.
 Author: Chip Huyen
 Prepared for the class CS 20SI: "TensorFlow for Deep Learning Research"
 cs20si.stanford.edu
@@ -32,13 +32,17 @@ def word2vec(batch_gen):
     # center_words have to be int to work on embedding lookup
 
     # TO DO
+    center_words = tf.placeholder(tf.int32, shape=[BATCH_SIZE])
+    target_words = tf.placeholder(tf.int32, shape=[BATCH_SIZE])
 
 
     # Step 2: define weights. In word2vec, it's actually the weights that we care about
     # vocab size x embed size
     # initialized to random uniform -1 to 1
 
-    # TOO DO
+    # TO DO
+    embed_matrix = tf.Variable(tf.random_uniform([VOCAB_SIZE, EMBED_SIZE], -1.0, 1.0))
+
 
 
     # Step 3: define the inference
@@ -46,6 +50,8 @@ def word2vec(batch_gen):
     # embed = tf.nn.embedding_lookup(embed_matrix, center_words, name='embed')
 
     # TO DO
+    embed = tf.nn.embedding_lookup(embed_matrix, center_words)
+
 
 
         # Step 4: construct variables for NCE loss
@@ -54,6 +60,8 @@ def word2vec(batch_gen):
         # bias: vocab size, initialized to 0
 
         # TO DO
+    nce_weight = tf.Variable(tf.truncated_normal([VOCAB_SIZE, EMBED_SIZE], stddev=1.0/EMBED_SIZE**0.5))
+    nce_bias = tf.Variable(tf.zeros([VOCAB_SIZE]))
 
 
         # define loss function to be NCE loss function
@@ -62,11 +70,18 @@ def word2vec(batch_gen):
         # note: you should use embedding of center words for inputs, not center words themselves
 
         # TO DO
+    loss = tf.reduce_mean(tf.nn.nce_loss(weights=nce_weight,
+                                         biases=nce_bias,
+                                         labels=target_words,
+                                         inputs=embed,
+                                         num_sampled=NUM_SAMPLED,
+                                         num_classes=VOCAB_SIZE))
 
-        
+
     # Step 5: define optimizer
-    
+
     # TO DO
+    optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(loss)
 
 
 
@@ -79,11 +94,13 @@ def word2vec(batch_gen):
         for index in range(NUM_TRAIN_STEPS):
             centers, targets = next(batch_gen)
             # TO DO: create feed_dict, run optimizer, fetch loss_batch
+            batch = batch_gen.next()
+
+            loss_batch, _ = sess.run([loss, optimizer], feed_dict={center_words: batch[0], target_words: batch[1]})
 
             total_loss += loss_batch
             if (index + 1) % SKIP_STEP == 0:
                 print('Average loss at step {}: {:5.1f}'.format(index, total_loss / SKIP_STEP))
-                total_loss = 0.0
         writer.close()
 
 def main():
