@@ -12,11 +12,12 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 import time
+import matplotlib.pyplot as plt
 
 # Define paramaters for the model
 learning_rate = 0.01
 batch_size = 128
-n_epochs = 10
+n_epochs = 50
 
 # Step 1: Read in data
 # using TF Learn's built in function to load MNIST data to the folder data/mnist
@@ -49,7 +50,7 @@ logits = tf.matmul(X, w) + b
 # Step 5: define loss function
 # use cross entropy loss of the real labels with the softmax of logits
 # use the method:
-entropy = tf.nn.softmax_cross_entropy_with_logits(logits, Y, name='loss')
+entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=Y, name='loss')
 loss = tf.reduce_mean(entropy)
 
 
@@ -68,7 +69,7 @@ with tf.Session() as sess:
     for _ in range(n_batches):
         X_batch, Y_batch = mnist.train.next_batch(batch_size)
         # TO-DO: run optimizer + fetch loss_batch
-        _, loss_batch = sess.run([optimizer, loss], feed_dict={X:X_batch, Y:y_batch})
+        _, loss_batch = sess.run([optimizer, loss], feed_dict={X:X_batch, Y:Y_batch})
         #
         total_loss += loss_batch
     print('Average loss epoch {0}: {1}'.format(i, total_loss/n_batches))
@@ -88,6 +89,6 @@ with tf.Session() as sess:
     for i in range(n_batches):
         X_batch, Y_batch = mnist.test.next_batch(batch_size)
         accuracy_batch = sess.run([accuracy], feed_dict={X: X_batch, Y:Y_batch})
-        total_correct_preds += accuracy_batch
+        total_correct_preds += accuracy_batch[0]
 
     print('Accuracy {0}'.format(total_correct_preds/mnist.test.num_examples))
